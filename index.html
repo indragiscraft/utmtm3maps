@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>GISCraft WebGIS — Coordinate Tracker</title>
+  <meta name="description"
+    content="Interactive WebGIS with real-time coordinate tracking. View coordinates in Decimal Degrees, DMS, UTM, and TM3 as you move your mouse across the map.">
+  <meta name="theme-color" content="#0f1923">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading WebGIS...</div>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Branding with UTM/TM3 Info -->
+  <div class="branding" id="branding-panel">
+    <div class="branding-header" id="branding-toggle">
+      <img src="img/Logo.png" alt="GISCraft Logo" class="branding-logo">
+      <div>
+        <div class="branding-text">GISCraft</div>
+        <div class="branding-sub">WebGIS Coordinate Tracker</div>
+      </div>
+      <i class="fas fa-chevron-down branding-chevron" id="branding-chevron"></i>
+    </div>
+    <!-- Collapsible UTM/TM3 Info Panel -->
+    <div class="branding-info" id="branding-info">
+      <div class="info-divider"></div>
+      <div class="info-section">
+        <div class="info-section-title"><i class="fas fa-crosshairs"></i> UTM</div>
+        <div class="info-row">
+          <span class="info-label">Zone</span>
+          <span class="info-value" id="info-utm-zone">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Easting</span>
+          <span class="info-value" id="info-utm-easting">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Northing</span>
+          <span class="info-value" id="info-utm-northing">—</span>
+        </div>
+      </div>
+      <div class="info-section" id="info-tm3-section">
+        <div class="info-section-title"><i class="fas fa-map-marked-alt"></i> TM3 (SRGI2013)</div>
+        <div class="info-row">
+          <span class="info-label">Zone</span>
+          <span class="info-value" id="info-tm3-zone">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">EPSG</span>
+          <span class="info-value" id="info-tm3-epsg">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Easting</span>
+          <span class="info-value" id="info-tm3-easting">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Northing</span>
+          <span class="info-value" id="info-tm3-northing">—</span>
+        </div>
+      </div>
+      <div class="branding-social">
+        <a href="https://liberapay.com/GISCraft/donate" target="_blank" rel="noopener noreferrer"
+          class="info-converter-link donate-link">
+          <img src="https://liberapay.com/assets/widgets/donate.svg" alt="Donate using Liberapay" style="height: 24px;">
+        </a>
+        <div class="trakteer-wrapper">
+          <script type='text/javascript'
+            src='https://edge-cdn.trakteer.id/js/trbtn-overlay.min.js?v=14-05-2025'></script>
+          <script type='text/javascript'
+            class='troverlay'>(function () { var trbtnId = trbtnOverlay.init('Traktir Kopi', '#be1e2d', 'https://trakteer.id/v1/giscraft/tip/embed/modal', 'https://edge-cdn.trakteer.id/images/embed/trbtn-icon.png?v=14-05-2025', '30', 'inline'); trbtnOverlay.draw(trbtnId); })();</script>
+        </div>
+        <div class="social-row">
+          <a href="https://www.tiktok.com/@gis.craft" target="_blank" rel="noopener noreferrer" class="social-link"
+            title="TikTok">
+            <i class="fab fa-tiktok"></i>
+          </a>
+          <a href="https://www.youtube.com/@giscraft" target="_blank" rel="noopener noreferrer" class="social-link"
+            title="YouTube">
+            <i class="fab fa-youtube"></i>
+          </a>
+          <a href="https://www.linkedin.com/company/giscraft" target="_blank" rel="noopener noreferrer"
+            class="social-link" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-wrapper">
+      <div class="search-icon">
+        <i class="fas fa-search"></i>
+      </div>
+      <input type="text" id="search-input" placeholder="Search location, lat lng, UTM, or TM3..." autocomplete="off"
+        spellcheck="false">
+      <button id="search-clear" class="search-clear" title="Clear">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+
+  <!-- Coordinate Bar (Bottom) -->
+  <div class="coord-bar">
+    <div class="coord-section" title="Click to copy coordinates">
+      <span class="coord-label">Lat</span>
+      <span class="coord-value" id="coord-lat">-6.882800</span>
+    </div>
+    <div class="coord-divider"></div>
+    <div class="coord-section" title="Click to copy coordinates">
+      <span class="coord-label">Lng</span>
+      <span class="coord-value" id="coord-lng">107.775879</span>
+    </div>
+    <div class="coord-divider"></div>
+    <div class="coord-zoom">
+      <i class="fas fa-search-plus"></i>
+      <span>Zoom:</span>
+      <span class="zoom-val" id="zoom-level">6</span>
+    </div>
+    <div class="coord-divider"></div>
+    <button id="coord-format-btn" class="coord-format-toggle" title="Toggle coordinate format">
+      <i class="fas fa-exchange-alt"></i>
+      <span>DD</span>
+    </button>
+  </div>
+
+  <!-- Copy Toast -->
+  <div id="copy-toast" class="copy-toast">Coordinates copied!</div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Proj4js for UTM/TM3 conversions -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+
+  <!-- App JS -->
+  <script src="js/app.js"></script>
+</body>
+
+</html>
