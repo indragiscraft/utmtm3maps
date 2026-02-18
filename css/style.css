@@ -72,6 +72,19 @@ body {
   z-index: 1;
 }
 
+/* --- Center Crosshair --- */
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 500;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
 /* ========= Leaflet Control Overrides ========= */
 .leaflet-control-zoom {
   border: none !important;
