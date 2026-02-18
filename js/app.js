@@ -73,22 +73,22 @@ const CONFIG = {
 // Reference: ITRF2014, Epoch 2021.0
 // ============================================
 const TM3_ZONES = [
-  { code: "46.2", epsg: 9476, centralMeridian: 94.5, lonMin: 93, lonMax: 96 },
-  { code: "47.1", epsg: 9487, centralMeridian: 97.5, lonMin: 96, lonMax: 99 },
-  { code: "47.2", epsg: 9487, centralMeridian: 100.5, lonMin: 99, lonMax: 102 },
-  { code: "48.1", epsg: 9488, centralMeridian: 103.5, lonMin: 102, lonMax: 105 },
-  { code: "48.2", epsg: 9488, centralMeridian: 106.5, lonMin: 105, lonMax: 108 },
-  { code: "49.1", epsg: 9489, centralMeridian: 109.5, lonMin: 108, lonMax: 111 },
-  { code: "49.2", epsg: 9489, centralMeridian: 112.5, lonMin: 111, lonMax: 114 },
-  { code: "50.1", epsg: 9490, centralMeridian: 115.5, lonMin: 114, lonMax: 117 },
-  { code: "50.2", epsg: 9490, centralMeridian: 118.5, lonMin: 117, lonMax: 120 },
-  { code: "51.1", epsg: 9491, centralMeridian: 121.5, lonMin: 120, lonMax: 123 },
-  { code: "51.2", epsg: 9491, centralMeridian: 124.5, lonMin: 123, lonMax: 126 },
-  { code: "52.1", epsg: 9492, centralMeridian: 127.5, lonMin: 126, lonMax: 129 },
-  { code: "52.2", epsg: 9492, centralMeridian: 130.5, lonMin: 129, lonMax: 132 },
-  { code: "53.1", epsg: 9493, centralMeridian: 133.5, lonMin: 132, lonMax: 135 },
-  { code: "53.2", epsg: 9493, centralMeridian: 136.5, lonMin: 135, lonMax: 138 },
-  { code: "54.1", epsg: 9494, centralMeridian: 139.5, lonMin: 138, lonMax: 141 }
+  { code: "46.2", epsg: 9476, centralMeridian: 94.5, lonMin: 93, lonMax: 96, latMin: -8.86, latMax: 7.79 },
+  { code: "47.1", epsg: 9487, centralMeridian: 97.5, lonMin: 96, lonMax: 99, latMin: -8.86, latMax: 7.49 },
+  { code: "47.2", epsg: 9487, centralMeridian: 100.5, lonMin: 99, lonMax: 102, latMin: -8.86, latMax: 7.49 },
+  { code: "48.1", epsg: 9488, centralMeridian: 103.5, lonMin: 102, lonMax: 105, latMin: -10.73, latMax: 7.49 },
+  { code: "48.2", epsg: 9488, centralMeridian: 106.5, lonMin: 105, lonMax: 108, latMin: -12.07, latMax: 7.37 },
+  { code: "49.1", epsg: 9489, centralMeridian: 109.5, lonMin: 108, lonMax: 111, latMin: -12.07, latMax: 7.37 },
+  { code: "49.2", epsg: 9489, centralMeridian: 112.5, lonMin: 111, lonMax: 114, latMin: -13.06, latMax: 7.37 },
+  { code: "50.1", epsg: 9490, centralMeridian: 115.5, lonMin: 114, lonMax: 117, latMin: -13.06, latMax: 4.37 },
+  { code: "50.2", epsg: 9490, centralMeridian: 118.5, lonMin: 117, lonMax: 120, latMin: -13.06, latMax: 4.37 },
+  { code: "51.1", epsg: 9491, centralMeridian: 121.5, lonMin: 120, lonMax: 123, latMin: -13.95, latMax: 5.48 },
+  { code: "51.2", epsg: 9491, centralMeridian: 124.5, lonMin: 123, lonMax: 126, latMin: -13.95, latMax: 6.68 },
+  { code: "52.1", epsg: 9492, centralMeridian: 127.5, lonMin: 126, lonMax: 129, latMin: -13.95, latMax: 6.68 },
+  { code: "52.2", epsg: 9492, centralMeridian: 130.5, lonMin: 129, lonMax: 132, latMin: -10.06, latMax: 6.68 },
+  { code: "53.1", epsg: 9493, centralMeridian: 133.5, lonMin: 132, lonMax: 135, latMin: -10.06, latMax: 0 },
+  { code: "53.2", epsg: 9493, centralMeridian: 136.5, lonMin: 135, lonMax: 138, latMin: -10.06, latMax: 0 },
+  { code: "54.1", epsg: 9494, centralMeridian: 139.5, lonMin: 138, lonMax: 141, latMin: -10.84, latMax: 0 }
 ];
 
 const TM3_SCALE_FACTOR = 0.9999;
@@ -143,12 +143,12 @@ function convertGeoToUTM(lat, lng) {
   return { zone, hemisphere, easting: result[0], northing: result[1] };
 }
 
-function getTM3Zone(lng) {
-  return TM3_ZONES.find(z => lng >= z.lonMin && lng < z.lonMax) || null;
+function getTM3Zone(lng, lat) {
+  return TM3_ZONES.find(z => lng >= z.lonMin && lng < z.lonMax && lat >= z.latMin && lat <= z.latMax) || null;
 }
 
 function convertGeoToTM3(lat, lng) {
-  const zone = getTM3Zone(lng);
+  const zone = getTM3Zone(lng, lat);
   if (!zone) return null;
   const tm3Proj = `+proj=tmerc +lat_0=0 +lon_0=${zone.centralMeridian} +k=${TM3_SCALE_FACTOR} +x_0=${TM3_FALSE_EASTING} +y_0=${TM3_FALSE_NORTHING} +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs`;
   const result = proj4(WGS84, tm3Proj, [lng, lat]);
